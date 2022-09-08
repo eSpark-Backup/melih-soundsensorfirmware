@@ -112,8 +112,8 @@ void loop() {
     int32_t channelArr[8];
     adc.readAllChannels(channelArr);
 
-    for (uint8_t i; i<8; i++) {
-    channelArr[i] = findPTPAmp();
+    for (uint8_t i=0; i<8; i++) {
+    channelArr[i] = findPTPAmp(channelArr[i]);
     if (channelArr[i] < 0) { channelArr[i] = ( -1 * channelArr[i] ); }
     channelArr[i] = map(channelArr[i], 2500000, 8000000, 0, 100);
     }
@@ -134,7 +134,7 @@ void loop() {
 }
 
 // Find the Peak-to-Peak Amplitude Function
-int findPTPAmp(){
+int findPTPAmp(uint32_t channelData){
 // Time variables to find the peak-to-peak amplitude
    unsigned long startTime= millis();  // Start of sample window
    unsigned int PTPAmp = 0; 
@@ -146,7 +146,7 @@ int findPTPAmp(){
 // Find the max and min of the mic output within the 50 ms timeframe
    while(millis() - startTime < sampleTime) 
    {
-      micOut = adc.readChannelSingle(0);
+      micOut = channelData;
       if( micOut < 1023) //prevent erroneous readings
       {
         if (micOut > maxAmp)
