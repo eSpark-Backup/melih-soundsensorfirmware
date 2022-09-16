@@ -59,8 +59,8 @@ void setup() {
 
 void loop() {
 
-    int sample = I2S.read();
-    Serial.println(findPTPAmp(sample));
+//    int sample = I2S.read();
+    Serial.println(findPTPAmp());
 //    Serial.println(sample);
     //delay(10);  
 }
@@ -95,7 +95,7 @@ void updateRegister(uint8_t deviceAddr, uint8_t registerAddr, uint8_t val)
    Serial.println(readRegister(deviceAddr, registerAddr),HEX);
    delay(10);
 }
-int findPTPAmp(int channelData){
+int findPTPAmp(){
 // Time variables to find the peak-to-peak amplitude
    unsigned long startTime= millis();  // Start of sample window
    unsigned int PTPAmp = 0; 
@@ -107,8 +107,8 @@ int findPTPAmp(int channelData){
 // Find the max and min of the mic output within the 50 ms timeframe
    while(millis() - startTime < sampleTime) 
    {
-      int micOut;
-      micOut = channelData;
+      int micOut = I2S.read();
+
       if( micOut < 8000000) //prevent erroneous readings
       {
         if (micOut > maxAmp)
