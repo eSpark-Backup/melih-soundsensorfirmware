@@ -3,7 +3,6 @@
 
 // Variables to find the peak-to-peak amplitude of AUD output
 const int sampleTime = 50; 
-int micOut;
 
 //previous VU value
 int preValue = 0; 
@@ -31,6 +30,8 @@ ADS131M08 adc(CS_PIN,XTAL_PIN,DRDY_PIN,8192000);
 unsigned long long sampleNum = 0;
 unsigned long long currentMicros = 0;
 char outputarr[128];
+int32_t channelArr[8];
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -108,15 +109,8 @@ void setup() {
 
 
 void loop() {
-
-    int32_t channelArr[8];
-    adc.readAllChannels(channelArr);
-
-    for (uint8_t i=0; i<8; i++) {
-    channelArr[i] = findPTPAmp(channelArr[i]);
-    if (channelArr[i] < 0) { channelArr[i] = ( -1 * channelArr[i] ); }
-    channelArr[i] = map(channelArr[i], 2500000, 8000000, 0, 100);
-    }
+  
+    findPTPAmp();
     
     sprintf(outputarr, "%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
               channelArr[0], 
@@ -134,41 +128,52 @@ void loop() {
 }
 
 // Find the Peak-to-Peak Amplitude Function
-int findPTPAmp(uint32_t channelData){
+void findPTPAmp(void){
 // Time variables to find the peak-to-peak amplitude
    unsigned long startTime= millis();  // Start of sample window
-   unsigned int PTPAmp = 0; 
+   unsigned int PTPAmp[8] = {0};
+   int micOut[8]; 
 
 // Signal variables to find the peak-to-peak amplitude
-   int maxAmp = 200000;
-   int minAmp = -200000;
+   int maxAmp[8];
+   std::fill_n(maxAmp, 8, 0);
+   int minAmp[8] ;
+   std::fill_n(minAmp, 8, 0);
 
 // Find the max and min of the mic output within the 50 ms timeframe
    while(millis() - startTime < sampleTime) 
    {
-      micOut = channelData;
-      if( micOut < 1023) //prevent erroneous readings
+    adc.readAllChannels(channelArr);
+    for (uint8_t i = 0; i < 8; i++)
+    {
+      micOut[i] = channelArr[i];
+      if( micOut[i] < 16777215) //prevent erroneous readings
       {
-        if (micOut > maxAmp)
+        if (micOut[i] > maxAmp[i])
         {
-          maxAmp = micOut; //save only the max reading
+          maxAmp[i] = micOut[i]; //save only the max reading
         }
-        else if (micOut < minAmp)
+        else if (micOut[i] < minAmp[i])
         {
-          minAmp = micOut; //save only the min reading
+          minAmp[i] = micOut[i]; //save only the min reading
         }
       }
+    }     
    }
 
-  PTPAmp = maxAmp - minAmp; // (max amp) - (min amp) = peak-to-peak amplitude
-  double micOut_Volts = (PTPAmp * 3.3) / 4096; // Convert ADC into voltage
+  for (uint8_t i = 0; i < 8; i++){
+    PTPAmp[i] = maxAmp[i] - minAmp[i]; // (max amp) - (min amp) = peak-to-peak amplitude 
+  }
+//  double micOut_Volts = (PTPAmp * 3.3) / 4096; // Convert ADC into voltage
 
   //Uncomment this line for help debugging (be sure to also comment out the VUMeter function)
   //Serial.println(PTPAmp); 
 
   //Return the PTP amplitude to use in the soundLevel function. 
   // You can also return the micOut_Volts if you prefer to use the voltage level.
-  return PTPAmp;   
+  for (uint8_t i = 0; i < 8; i++){
+    channelArr[i] = PTPAmp[i];
+  }    
 }
 
 //// Volume Unit Meter function: map the PTP amplitude to a volume unit between 0 and 10.
