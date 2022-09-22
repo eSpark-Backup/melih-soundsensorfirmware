@@ -33,6 +33,11 @@
 #define pg0reg11 0x0B
 #define bclkdivreg 0x26
 
+#define Mic_01 1
+#define Mic_02 2
+#define Mic_03 3
+#define Mic_04 4
+
 static const int i2s_num = 0; // i2s port number
 
 static const i2s_config_t i2s_config = {
@@ -62,27 +67,12 @@ void setup() {
 
   i2s_driver_install((i2s_port_t)i2s_num, &i2s_config, 0, NULL);
   i2s_set_pin((i2s_port_t)i2s_num, &pin_config);
-//  I2S.setSckPin(PIN_I2S_SCK);
-//  I2S.setFsPin(PIN_I2S_FS);
-//  I2S.setDataPin(PIN_I2S_SD);
-//  //I2S.setDataInPin(PIN_I2S_SD);
-//  
-//  // start I2S at 8 kHz with 32-bits per sample
-//  if (!I2S.begin(I2S_PHILIPS_MODE, 192000, 32)) {
-//    Serial.println("Failed to initialize I2S!");
-//    while (1); // do nothing
-//  }
-//    Serial.println("I2S Initialized");
-//    Serial.println(I2S.getDataInPin());
 
   byte devAddress;
   devAddress = 0x4A;
 
   updateRegister(devAddress, pg0reg1, 0x40);
-  updateRegister(devAddress, pg0reg6, 0x60);
-  updateRegister(devAddress, pg0reg7, 0x40);
-  updateRegister(devAddress, pg0reg8, 0x40);
-  updateRegister(devAddress, pg0reg9, 0x40);
+  micSelect(Mic_01);
   updateRegister(devAddress, pg0reg11, 0x40);
   Serial.println(readRegister(devAddress, bclkdivreg),HEX);
 }
@@ -93,10 +83,7 @@ void loop() {
 //i2s_read((i2s_port_t)i2s_num, &samples, 4, (size_t*)&bytesRead, 100);
 //Serial.println(samples);
 Serial.println(findPTPAmp());
-//    int sample = I2S.read();
-//    Serial.println(findPTPAmp(sample));
-//    Serial.println(sample);
-    //delay(10);  
+
 }
 
 uint8_t readRegister(uint8_t deviceAddr, uint8_t registerAddr)
@@ -129,6 +116,48 @@ void updateRegister(uint8_t deviceAddr, uint8_t registerAddr, uint8_t val)
    Serial.println(readRegister(deviceAddr, registerAddr),HEX);
    delay(10);
 }
+void micSelect(uint8_t micNo)
+{
+  byte devAddress;
+  devAddress = 0x4A;
+  switch (micNo)
+  {
+    case 1:
+      updateRegister(devAddress, pg0reg6, 0x50);   
+      updateRegister(devAddress, pg0reg7, 0x40);
+      updateRegister(devAddress, pg0reg8, 0x40);
+      updateRegister(devAddress, pg0reg9, 0x40);
+      break;
+
+    case 2:
+      updateRegister(devAddress, pg0reg6, 0x40);   
+      updateRegister(devAddress, pg0reg7, 0x50);
+      updateRegister(devAddress, pg0reg8, 0x40);
+      updateRegister(devAddress, pg0reg9, 0x40);
+      break;
+      
+    case 3:
+      updateRegister(devAddress, pg0reg6, 0x40);   
+      updateRegister(devAddress, pg0reg7, 0x60);
+      updateRegister(devAddress, pg0reg8, 0x40);
+      updateRegister(devAddress, pg0reg9, 0x40);
+      break;
+    case 4:
+      updateRegister(devAddress, pg0reg6, 0x60);   
+      updateRegister(devAddress, pg0reg7, 0x40);
+      updateRegister(devAddress, pg0reg8, 0x40);
+      updateRegister(devAddress, pg0reg9, 0x40);
+      break;   
+
+    default:
+      updateRegister(devAddress, pg0reg6, 0x40);   
+      updateRegister(devAddress, pg0reg7, 0x40);
+      updateRegister(devAddress, pg0reg8, 0x40);
+      updateRegister(devAddress, pg0reg9, 0x40);
+  }
+
+}
+
 int findPTPAmp(){
 // Time variables to find the peak-to-peak amplitude
    unsigned long startTime= millis();  // Start of sample window
