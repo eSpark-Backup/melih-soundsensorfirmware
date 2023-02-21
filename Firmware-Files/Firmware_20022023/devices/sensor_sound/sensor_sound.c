@@ -132,7 +132,9 @@ static int ezlopi_sound_get_value_cjson(s_ezlopi_device_properties_t *properties
     {
         // cJSON_AddBoolToObject(cjson_propertise, "value", is_motion_detected);
         cJSON_AddNumberToObject(cjson_propertise, "value", decibel);
-        cJSON_AddStringToObject(cjson_propertise, "valueFormatted", "%d",decibel);
+        char my_str[5];
+        sprintf(my_str, "%d", decibel);
+        cJSON_AddStringToObject(cjson_propertise, "valueFormatted", my_str);
         cJSON_AddNumberToObject(cjson_propertise, "minValue", 0);
         cJSON_AddNumberToObject(cjson_propertise, "maxValue", 50);
         cJSON_AddStringToObject(cjson_propertise, "scale", "decibel");

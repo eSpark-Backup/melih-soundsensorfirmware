@@ -8,6 +8,7 @@ const int sampleTime = 50;
 #define MOSI_PIN 23
 #define SCK_PIN 18
 #define CS_PIN 27
+#define VREF 3.3
 
 #define VSPI_MISO MISO_PIN
 #define VSPI_MOSI MOSI_PIN
