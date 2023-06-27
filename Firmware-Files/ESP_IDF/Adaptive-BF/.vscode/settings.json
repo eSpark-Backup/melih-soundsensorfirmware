@@ -1,0 +1,8 @@
+{
+    "idf.adapterTargetName": "esp32",
+    "files.associations": {
+        "arm_math.h": "c",
+        "pdm2pcm_glo.h": "c",
+        "defines.h": "c"
+    }
+}
